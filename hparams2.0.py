@@ -7,7 +7,7 @@ data_path = 'preprocess_RAW_hop300_win1200_2048fft_multi_woman'
 
 # model ids are separate - that way you can use a new tts with an old wavernn and vice versa
 # NB: expect undefined behaviour if models were trained on different DSP settings
-voc_model_id = 'RAW_hop300_355_win1200_5block_2048fft_multi_woman'
+voc_model_id = 'RAW_hop300_355_win1200_5block_2048fft_multi2.0_woman'
 tts_model_id = 'tts_not_need'
 
 # set this to True if you are only interested in WaveRNN
