@@ -41,7 +41,7 @@ voc_fc_dims = 512
 voc_compute_dims = 128
 voc_res_out_dims = 128
 voc_res_blocks = 5
-
+version = 2.0
 #########################  MultiBand-WaveRNN   #########################
 voc_multiband = True
 voc_upsample_factors = (3, 5, 5)   # 相乘应是hop_length/4
@@ -56,7 +56,7 @@ voc_gen_at_checkpoint = 5           # number of samples to generate at each chec
 voc_total_steps = 1_000_000         # Total number of training steps
 voc_test_samples = 50               # How many unseen samples to put aside for testing
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider than input length
-voc_seq_len = hop_length * 5       # must be a multiple of hop_length
+voc_seq_len = hop_length * 5 * 4     # must be a multiple of hop_length
 voc_clip_grad_norm = None              # set to None if no gradient clipping needed
 voc_pad_val = -5                    # this is the minimum of mel features
 

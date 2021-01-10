@@ -7,7 +7,8 @@ import torch
 import argparse
 from models.pqmf import PQMF
 from pathlib import Path
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"  #指定第一块gpu
 
 def gen_testset(model: WaveRNN, test_set, samples, batched, target, overlap, save_path: Path):
 
@@ -33,10 +34,10 @@ def gen_testset(model: WaveRNN, test_set, samples, batched, target, overlap, sav
 
             source = mypqmf.synthesis(
                 torch.tensor(x, dtype=torch.float).unsqueeze(
-                    0)).numpy()  # (batch, sub_band, T//sub_band) -> (batch, 1, T)
-            source = source.squeeze()
+                    0)).numpy()  # (1, sub_band, T//sub_band) -> (1, 1, T)
+            source = source.squeeze() # (T,)
             save_wav(source,save_path/f'{k}k_steps_{i}_target.wav')
-            np.save(save_path/f'{k}k_steps_{i}_target.npy', x, allow_pickle=False)
+            # np.save(save_path/f'{k}k_steps_{i}_target.npy', x, allow_pickle=False)
 
         else:
             x = x[0].numpy()

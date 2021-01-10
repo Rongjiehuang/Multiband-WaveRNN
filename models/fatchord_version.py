@@ -9,6 +9,7 @@ import numpy as np
 from pathlib import Path
 from typing import Union
 from models.pqmf import PQMF
+from utils import hparams as hp
 
 
 class ResBlock(nn.Module):
@@ -114,7 +115,14 @@ class WaveRNN(nn.Module):
         self.sample_rate = sample_rate
 
         self.upsample = UpsampleNetwork(feat_dims, upsample_factors, compute_dims, res_blocks, res_out_dims, pad)
-        self.I = nn.Linear(feat_dims + self.aux_dims + 4, rnn_dims)
+        if hp.version == 2.0:
+            self.I = nn.Linear(feat_dims + self.aux_dims + 4, rnn_dims)
+
+        elif hp.version == 3.0:
+            self.I0 = nn.Linear(feat_dims + self.aux_dims + 1, rnn_dims)
+            self.I1 = nn.Linear(feat_dims + self.aux_dims + 1, rnn_dims)
+            self.I2 = nn.Linear(feat_dims + self.aux_dims + 1, rnn_dims)
+            self.I3 = nn.Linear(feat_dims + self.aux_dims + 1, rnn_dims)
 
         self.rnn10 = nn.GRU(rnn_dims, rnn_dims, batch_first=True)
         self.rnn11 = nn.GRU(rnn_dims, rnn_dims, batch_first=True)
@@ -126,7 +134,8 @@ class WaveRNN(nn.Module):
         self.rnn23 = nn.GRU(rnn_dims + self.aux_dims, rnn_dims, batch_first=True)
 
         # self._to_flatten += [self.rnn1, self.rnn2]
-        self._to_flatten += [self.rnn10, self.rnn11,self.rnn12, self.rnn13,self.rnn20, self.rnn21,self.rnn22, self.rnn23]
+        self._to_flatten += [self.rnn10, self.rnn11, self.rnn12, self.rnn13, self.rnn20, self.rnn21, self.rnn22,
+                             self.rnn23]
 
         self.fc10 = nn.Linear(rnn_dims + self.aux_dims, fc_dims)
         self.fc11 = nn.Linear(rnn_dims + self.aux_dims, fc_dims)
@@ -170,20 +179,48 @@ class WaveRNN(nn.Module):
         a4 = aux[:, :, aux_idx[3]:aux_idx[4]]
         # x = torch.cat([x.unsqueeze(-1), mels, a1], dim=2)
 
-        x = torch.cat([x.transpose(1,2), mels, a1], dim=2)  # (batch,T,4)  (batch,T,80) (batch,T,32)
-        x = self.I(x)  # (batch, T, 116) -> # (batch, T, 512)
-        res = x
-        # x, _ = self.rnn1(x, h1)
+        if hp.version == 2.0:
+            x = torch.cat([x.transpose(1, 2), mels, a1], dim=2)  # (batch,T,4)  (batch,T,80) (batch,T,32)
+            x = self.I(x)  # (batch, T, 116) -> # (batch, T, 512)
+            res = x
+            # x, _ = self.rnn1(x, h1)
+            x0, _ = self.rnn10(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x1, _ = self.rnn11(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x2, _ = self.rnn12(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x3, _ = self.rnn13(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
 
-        x0, _ = self.rnn10(x)   # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
-        x1, _ = self.rnn11(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
-        x2, _ = self.rnn12(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
-        x3, _ = self.rnn13(x)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x0 = x0 + res  # (batch, T, 512)
+            x1 = x1 + res  # (batch, T, 512)
+            x2 = x2 + res  # (batch, T, 512)
+            x3 = x3 + res  # (batch, T, 512)
 
-        x0 = x0 + res    # (batch, T, 512)
-        x1 = x1 + res    # (batch, T, 512)
-        x2 = x2 + res    # (batch, T, 512)
-        x3 = x3 + res    # (batch, T, 512)
+        elif hp.version == 3.0:
+            # print("x.transpose(1, 2).shape",x.transpose(1, 2).shape)
+            # print("x.transpose(1, 2)[:, :, 0].shape", x.transpose(1, 2)[:, :, 0].shape)
+            x0 = torch.cat([x.transpose(1, 2)[:, :, 0].unsqueeze(-1), mels, a1],
+                           dim=2)  # (batch,T,1)  (batch,T,80) (batch,T,32)
+            x1 = torch.cat([x.transpose(1, 2)[:, :, 1].unsqueeze(-1), mels, a1], dim=2)
+            x2 = torch.cat([x.transpose(1, 2)[:, :, 2].unsqueeze(-1), mels, a1], dim=2)
+            x3 = torch.cat([x.transpose(1, 2)[:, :, 3].unsqueeze(-1), mels, a1], dim=2)
+
+            x0 = self.I0(x0)  # (batch, T, 116) -> # (batch, T, 512)
+            x1 = self.I1(x1)  # (batch, T, 116) -> # (batch, T, 512)
+            x2 = self.I2(x2)  # (batch, T, 116) -> # (batch, T, 512)
+            x3 = self.I3(x3)  # (batch, T, 116) -> # (batch, T, 512)
+            res0 = x0
+            res1 = x1
+            res2 = x2
+            res3 = x3
+            # x, _ = self.rnn1(x, h1)
+            x0, _ = self.rnn10(x0)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x1, _ = self.rnn11(x1)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x2, _ = self.rnn12(x2)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+            x3, _ = self.rnn13(x3)  # 不加入隐藏层-Begee  # (batch, T, 512) -> (batch, T, 512)
+
+            x0 = x0 + res0  # (batch, T, 512)
+            x1 = x1 + res1  # (batch, T, 512)
+            x2 = x2 + res2  # (batch, T, 512)
+            x3 = x3 + res3  # (batch, T, 512)
 
         res0 = x0
         res1 = x1
@@ -208,9 +245,9 @@ class WaveRNN(nn.Module):
         x0 = torch.cat([x0, a3], dim=2)  # (batch, T, 512+128)
         x1 = torch.cat([x1, a3], dim=2)  # (batch, T, 512+128)
         x2 = torch.cat([x2, a3], dim=2)  # (batch, T, 512+128)
-        x3 = torch.cat([x3, a3], dim=2) # (batch, T, 512+128)
+        x3 = torch.cat([x3, a3], dim=2)  # (batch, T, 512+128)
 
-        x0 = F.relu(self.fc10(x0)) # (batch, T, 512+128) -> (batch, T, 512)
+        x0 = F.relu(self.fc10(x0))  # (batch, T, 512+128) -> (batch, T, 512)
         x1 = F.relu(self.fc11(x1))  # (batch, T, 512+128) -> (batch, T, 512)
         x2 = F.relu(self.fc12(x2))  # (batch, T, 512+128) -> (batch, T, 512)
         x3 = F.relu(self.fc13(x3))  # (batch, T, 512+128) -> (batch, T, 512)
@@ -225,15 +262,15 @@ class WaveRNN(nn.Module):
         x2 = F.relu(self.fc22(x2))  # (batch, T, 512+128) -> (batch, T, 512)
         x3 = F.relu(self.fc23(x3))  # (batch, T, 512+128) -> (batch, T, 512)
 
-        out0 = self.fc30(x0).unsqueeze(-1) # (batch, T, 512) -> (batch, T, 512, 1)
+        out0 = self.fc30(x0).unsqueeze(-1)  # (batch, T, 512) -> (batch, T, 512, 1)
         out1 = self.fc31(x1).unsqueeze(-1)
         out2 = self.fc32(x2).unsqueeze(-1)
         out3 = self.fc33(x3).unsqueeze(-1)
-        out = torch.cat([out0,out1,out2,out3], dim=3)  # (B, T, num_classes, sub_band)
+        out = torch.cat([out0, out1, out2, out3], dim=3)  # (B, T, num_classes, sub_band)
         return out
 
-
-    def generate(self, mels, save_path: Union[str, Path],save_path2: Union[str, Path], batched, target, overlap, mu_law):
+    def generate(self, mels, save_path: Union[str, Path], save_path2: Union[str, Path], batched, target, overlap,
+                 mu_law):
         self.eval()
 
         device = next(self.parameters()).device  # use same device as parameters
@@ -252,167 +289,191 @@ class WaveRNN(nn.Module):
         rnn23 = self.get_gru_cell(self.rnn23)
 
         mypqmf = PQMF()
-        with torch.no_grad():
-            #   MB-WaveRNN    |     WaveRNN
-            mels = torch.as_tensor(mels, device=device)  # (80, 748)
-            wave_len = (mels.size(-1) - 1) * self.hop_length
-            mels = self.pad_tensor(mels.transpose(1, 2), self.pad, self.pad_val,side='both')  # (752, 80)
-            mels, aux = self.upsample(mels.transpose(1, 2))  # (23936,80) (23936,128) | (95744,80) (95744,128)
-            # print("mels.shape",mels.shape,"aux.shape",aux.shape)
-            if batched:
-                mels = self.fold_with_overlap(mels, target, overlap,self.pad_val)
-                aux = self.fold_with_overlap(aux, target, overlap,self.pad_val)
 
-            b_size, seq_len, _ = mels.size()
+        # MB-WaveRNN    |     WaveRNN
+        mels = torch.as_tensor(mels, device=device)  # (80, 748)
+        wave_len = (mels.size(-1) - 1) * self.hop_length
+        mels = self.pad_tensor(mels.transpose(1, 2), self.pad, self.pad_val, side='both')  # (752, 80)
+        mels, aux = self.upsample(mels.transpose(1, 2))  # (23936,80) (23936,128) | (95744,80) (95744,128)
+        # print("mels.shape",mels.shape,"aux.shape",aux.shape)
+        if batched:
+            mels = self.fold_with_overlap(mels, target, overlap, self.pad_val)
+            aux = self.fold_with_overlap(aux, target, overlap, self.pad_val)
 
-            h10 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h11 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h12 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h13 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h20 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h21 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h22 = torch.zeros(b_size, self.rnn_dims, device=device)
-            h23 = torch.zeros(b_size, self.rnn_dims, device=device)
+        b_size, seq_len, _ = mels.size()
 
-            x = torch.zeros(b_size, 4, device=device)
+        h10 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h11 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h12 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h13 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h20 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h21 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h22 = torch.zeros(b_size, self.rnn_dims, device=device)
+        h23 = torch.zeros(b_size, self.rnn_dims, device=device)
 
-            d = self.aux_dims
-            aux_split = [aux[:, :, d * i:d * (i + 1)] for i in range(4)]
+        x = torch.zeros(b_size, 4, device=device)
 
-            #########################  MultiBand-WaveRNN   #########################
-            if hp.voc_multiband:
-                for i in range(seq_len):  # 23936 | 95744
+        d = self.aux_dims
+        aux_split = [aux[:, :, d * i:d * (i + 1)] for i in range(4)]
 
-                    m_t = mels[:, i, :]
-                    a1_t, a2_t, a3_t, a4_t = \
-                            (a[:, i, :] for a in aux_split)
+        #########################  MultiBand-WaveRNN   #########################
 
-                    # print("x.shape",x.shape,"m_t.shape",m_t.shape,"a1_t.shape",a1_t.shape)
-                    x = torch.cat([x, m_t, a1_t], dim=1)  #(5,4) + (5,32) + (5,80)
-                    x = self.I(x)
+        for i in range(seq_len):  # 23936 | 95744
 
-                    h10 = rnn10(x, h10)
-                    h11 = rnn11(x, h11)
-                    h12 = rnn12(x, h12)
-                    h13 = rnn13(x, h13)
+            m_t = mels[:, i, :]
+            a1_t, a2_t, a3_t, a4_t = \
+                (a[:, i, :] for a in aux_split)
 
-                    x0 = x + h10
-                    x1 = x + h11
-                    x2 = x + h12
-                    x3 = x + h13
+            # print("x.shape",x.shape,"m_t.shape",m_t.shape,"a1_t.shape",a1_t.shape)
 
-                    inp0 = torch.cat([x0, a2_t], dim=1)
-                    inp1 = torch.cat([x1, a2_t], dim=1)
-                    inp2 = torch.cat([x2, a2_t], dim=1)
-                    inp3 = torch.cat([x3, a2_t], dim=1)
+            if hp.version == 2.0:
+                x = torch.cat([x, m_t, a1_t], dim=1)  # (5,4) + (5,32) + (5,80)
+                x = self.I(x)
 
-                    h20 = rnn20(inp0, h20)
-                    h21 = rnn21(inp1, h21)
-                    h22 = rnn22(inp2, h22)
-                    h23 = rnn23(inp3, h23)
+                h10 = rnn10(x, h10)
+                h11 = rnn11(x, h11)
+                h12 = rnn12(x, h12)
+                h13 = rnn13(x, h13)
 
-                    x0 = x0 + h20
-                    x1 = x1 + h21
-                    x2 = x2 + h22
-                    x3 = x3 + h23
+                x0 = x + h10
+                x1 = x + h11
+                x2 = x + h12
+                x3 = x + h13
 
-                    x0 = torch.cat([x0, a3_t], dim=1)
-                    x1 = torch.cat([x1, a3_t], dim=1)
-                    x2 = torch.cat([x2, a3_t], dim=1)
-                    x3 = torch.cat([x3, a3_t], dim=1)
+            elif hp.version == 3.0:
+                x0 = torch.cat([x[:, 0].unsqueeze(-1), m_t, a1_t], dim=1)  # (5,1) + (5,32) + (5,80)
+                x1 = torch.cat([x[:, 1].unsqueeze(-1), m_t, a1_t], dim=1)
+                x2 = torch.cat([x[:, 2].unsqueeze(-1), m_t, a1_t], dim=1)
+                x3 = torch.cat([x[:, 3].unsqueeze(-1), m_t, a1_t], dim=1)
 
-                    x0 = F.relu(self.fc10(x0))
-                    x1 = F.relu(self.fc11(x1))
-                    x2 = F.relu(self.fc12(x2))
-                    x3 = F.relu(self.fc13(x3))
+                x0 = self.I0(x0)
+                x1 = self.I1(x1)
+                x2 = self.I2(x2)
+                x3 = self.I3(x3)
 
-                    x0 = torch.cat([x0, a4_t], dim=1)
-                    x1 = torch.cat([x1, a4_t], dim=1)
-                    x2 = torch.cat([x2, a4_t], dim=1)
-                    x3 = torch.cat([x3, a4_t], dim=1)
+                h10 = rnn10(x0, h10)
+                h11 = rnn11(x1, h11)
+                h12 = rnn12(x2, h12)
+                h13 = rnn13(x3, h13)
 
-                    x0 = F.relu(self.fc20(x0))
-                    x1 = F.relu(self.fc21(x1))
-                    x2 = F.relu(self.fc22(x2))
-                    x3 = F.relu(self.fc23(x3))
+                x0 = x0 + h10
+                x1 = x1 + h11
+                x2 = x2 + h12
+                x3 = x3 + h13
 
-                    logits0 = self.fc30(x0)
-                    logits1 = self.fc31(x1)
-                    logits2 = self.fc32(x2)
-                    logits3 = self.fc33(x3)
+            inp0 = torch.cat([x0, a2_t], dim=1)
+            inp1 = torch.cat([x1, a2_t], dim=1)
+            inp2 = torch.cat([x2, a2_t], dim=1)
+            inp3 = torch.cat([x3, a2_t], dim=1)
 
-                    if self.mode == 'MOL':
-                        sample0 = sample_from_discretized_mix_logistic(logits0.unsqueeze(0).transpose(1, 2))
-                        sample1 = sample_from_discretized_mix_logistic(logits1.unsqueeze(0).transpose(1, 2))
-                        sample2 = sample_from_discretized_mix_logistic(logits2.unsqueeze(0).transpose(1, 2))
-                        sample3 = sample_from_discretized_mix_logistic(logits3.unsqueeze(0).transpose(1, 2))
-                        sample = torch.cat([sample0,sample1,sample2,sample3],dim=1)
-                        # x = torch.FloatTensor([[sample]]).cuda()
-                        x = sample.transpose(0, 1)
+            h20 = rnn20(inp0, h20)
+            h21 = rnn21(inp1, h21)
+            h22 = rnn22(inp2, h22)
+            h23 = rnn23(inp3, h23)
 
-                    elif self.mode == 'RAW':
-                        posterior0 = F.softmax(logits0, dim=1)
-                        posterior1 = F.softmax(logits1, dim=1)
-                        posterior2 = F.softmax(logits2, dim=1)
-                        posterior3 = F.softmax(logits3, dim=1)
+            x0 = x0 + h20
+            x1 = x1 + h21
+            x2 = x2 + h22
+            x3 = x3 + h23
 
-                        distrib0 = torch.distributions.Categorical(posterior0)
-                        distrib1 = torch.distributions.Categorical(posterior1)
-                        distrib2 = torch.distributions.Categorical(posterior2)
-                        distrib3 = torch.distributions.Categorical(posterior3)
+            x0 = torch.cat([x0, a3_t], dim=1)
+            x1 = torch.cat([x1, a3_t], dim=1)
+            x2 = torch.cat([x2, a3_t], dim=1)
+            x3 = torch.cat([x3, a3_t], dim=1)
 
-                        # label -> float
-                        sample0 = 2 * distrib0.sample().float() / (self.n_classes - 1.) - 1.
-                        sample1 = 2 * distrib1.sample().float() / (self.n_classes - 1.) - 1.
-                        sample2 = 2 * distrib2.sample().float() / (self.n_classes - 1.) - 1.
-                        sample3 = 2 * distrib3.sample().float() / (self.n_classes - 1.) - 1.
-                        sample = torch.cat([sample0.unsqueeze(-1), sample1.unsqueeze(-1), sample2.unsqueeze(-1), sample3.unsqueeze(-1)], dim=-1)
-                        # print("sample.shape",sample.shape,"sample0.shape",sample0.shape)
-                        output.append(sample)    # final output: (6050,)
-                        x = sample
+            x0 = F.relu(self.fc10(x0))
+            x1 = F.relu(self.fc11(x1))
+            x2 = F.relu(self.fc12(x2))
+            x3 = F.relu(self.fc13(x3))
 
-                    else:
-                        raise RuntimeError("Unknown model mode value - ", self.mode)
+            x0 = torch.cat([x0, a4_t], dim=1)
+            x1 = torch.cat([x1, a4_t], dim=1)
+            x2 = torch.cat([x2, a4_t], dim=1)
+            x3 = torch.cat([x3, a4_t], dim=1)
 
-                    if i % 100 == 0: self.gen_display(i, seq_len, b_size, start)
+            x0 = F.relu(self.fc20(x0))
+            x1 = F.relu(self.fc21(x1))
+            x2 = F.relu(self.fc22(x2))
+            x3 = F.relu(self.fc23(x3))
 
-                output = torch.stack(output).transpose(0, 1).transpose(1, 2)
-                output = output.cpu().numpy()
-                output = output.astype(np.float64)
-                # print("output",output)
+            logits0 = self.fc30(x0)  # (batch,num_classes)
+            logits1 = self.fc31(x1)
+            logits2 = self.fc32(x2)
+            logits3 = self.fc33(x3)
 
-                if mu_law:
-                    output = decode_mu_law(output, self.n_classes, False)
+            if self.mode == 'MOL':
+                sample0 = sample_from_discretized_mix_logistic(logits0.unsqueeze(0).transpose(1, 2))
+                sample1 = sample_from_discretized_mix_logistic(logits1.unsqueeze(0).transpose(1, 2))
+                sample2 = sample_from_discretized_mix_logistic(logits2.unsqueeze(0).transpose(1, 2))
+                sample3 = sample_from_discretized_mix_logistic(logits3.unsqueeze(0).transpose(1, 2))
+                sample = torch.cat([sample0, sample1, sample2, sample3], dim=1)
+                # x = torch.FloatTensor([[sample]]).cuda()
+                x = sample.transpose(0, 1)
 
-            #########################  MultiBand-WaveRNN   #########################
+            elif self.mode == 'RAW':
+                posterior0 = F.softmax(logits0, dim=1)  # (batch, num_classes)
+                posterior1 = F.softmax(logits1, dim=1)
+                posterior2 = F.softmax(logits2, dim=1)
+                posterior3 = F.softmax(logits3, dim=1)
+
+                distrib0 = torch.distributions.Categorical(posterior0)
+                distrib1 = torch.distributions.Categorical(posterior1)
+                distrib2 = torch.distributions.Categorical(posterior2)
+                distrib3 = torch.distributions.Categorical(posterior3)
+
+                # label -> float
+                sample0 = 2 * distrib0.sample().float() / (self.n_classes - 1.) - 1.
+                sample1 = 2 * distrib1.sample().float() / (self.n_classes - 1.) - 1.
+                sample2 = 2 * distrib2.sample().float() / (self.n_classes - 1.) - 1.
+                sample3 = 2 * distrib3.sample().float() / (self.n_classes - 1.) - 1.
+                sample = torch.cat(
+                    [sample0.unsqueeze(-1), sample1.unsqueeze(-1), sample2.unsqueeze(-1), sample3.unsqueeze(-1)],
+                    dim=-1)
+
+                output.append(sample)
+                x = sample  # (batch, subbands)
+
+            else:
+                raise RuntimeError("Unknown model mode value - ", self.mode)
+
+            if i % 100 == 0: self.gen_display(i, seq_len, b_size, start)
+
+
+        output = torch.stack(output).squeeze()  # (T//sub_bands, sub_bands)
+        output = output.cpu().numpy()
+        output = output.astype(np.float)
+
+        if mu_law:
+            output = decode_mu_law(output, self.n_classes, False)
+
+    #########################  MultiBand-WaveRNN   #########################
 
         if batched:
-            output = self.xfade_and_unfold(output, target, overlap)
-        else:
-            output = output[0]
+            output = self.xfade_and_unfold(output, overlap)
+        # else:
+        #     output = output[0]
 
         np.save(save_path2, output, allow_pickle=False)
         output = mypqmf.synthesis(
-            torch.tensor(output, dtype=torch.float).unsqueeze(0)).numpy()  # (batch, sub_band, T//sub_band) -> (batch, 1, T)
+            torch.tensor(output, dtype=torch.float).unsqueeze(0).transpose(1,2)).numpy()  # (batch, sub_band, T//sub_band) -> (batch, 1, T)
         output = output.squeeze()
 
         # Fade-out at the end to avoid signal cutting out suddenly
-        fade_out = np.linspace(1, 0, 20 * self.hop_length)
-        output = output[:wave_len]
-        output[-20 * self.hop_length:] *= fade_out
+        # fade_out = np.linspace(1, 0, 20 * self.hop_length)
+        # output = output[:wave_len]
+        # output[-20 * self.hop_length:] *= fade_out
 
         save_wav(output, save_path)
-
         self.train()
-
         return output
 
 
     def gen_display(self, i, seq_len, b_size, start):
         gen_rate = (i + 1) / (time.time() - start) * b_size / 1000
         pbar = progbar(i, seq_len)
-        msg = f'| {pbar} {i*b_size}/{seq_len*b_size} | Batch Size: {b_size} | Gen Rate: {gen_rate:.1f}kHz | '
+        msg = f'| {pbar} {i * b_size}/{seq_len * b_size} | Batch Size: {b_size} | Gen Rate: {gen_rate:.1f}kHz | '
         stream(msg)
+
 
     def get_gru_cell(self, gru):
         gru_cell = nn.GRUCell(gru.input_size, gru.hidden_size)
@@ -422,7 +483,8 @@ class WaveRNN(nn.Module):
         gru_cell.bias_ih.data = gru.bias_ih_l0.data
         return gru_cell
 
-    def pad_tensor(self, x, pad,pad_val,side='both'):  # 引入pad_val-Begee
+
+    def pad_tensor(self, x, pad, pad_val, side='both'):  # 引入pad_val-Begee
         # NB - this is just a quick method i need right now
         # i.e., it won't generalise to other shapes/dims
         b, t, c = x.size()
@@ -434,8 +496,8 @@ class WaveRNN(nn.Module):
             padded[:, :t, :] = x
         return padded
 
-    def fold_with_overlap(self, x, target, overlap,pad_val):
 
+    def fold_with_overlap(self, x, target, overlap, pad_val):
         ''' Fold the tensor with overlap for quick batched inference.
             Overlap will be used for crossfading in xfade_and_unfold()
 
@@ -483,8 +545,8 @@ class WaveRNN(nn.Module):
 
         return folded
 
-    def xfade_and_unfold(self, y, target, overlap):
 
+    def xfade_and_unfold(self, y, overlap):
         ''' Applies a crossfade and unfolds into a 1d array.
 
         Args:
@@ -548,17 +610,21 @@ class WaveRNN(nn.Module):
 
         return unfolded
 
+
     def get_step(self):
         return self.step.data.item()
+
 
     def log(self, path, msg):
         with open(path, 'a') as f:
             print(msg, file=f)
 
+
     def load(self, path: Union[str, Path]):
         # Use device of model params as location for loaded state
         device = next(self.parameters()).device
         self.load_state_dict(torch.load(path, map_location=device), strict=False)
+
 
     def save(self, path: Union[str, Path]):
         # No optimizer argument because saving a model should not include data
@@ -566,12 +632,14 @@ class WaveRNN(nn.Module):
         # of the model itself. Let caller take care of saving optimzier state.
         torch.save(self.state_dict(), path)
 
+
     def num_params(self, print_out=True):
         parameters = filter(lambda p: p.requires_grad, self.parameters())
         parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
         if print_out:
             print('Trainable Parameters: %.3fM' % parameters)
         return parameters
+
 
     def _flatten_parameters(self):
         """Calls `flatten_parameters` on all the rnns used by the WaveRNN. Used

@@ -73,22 +73,12 @@ def collate_vocoder(batch):
     mels = [x[0][:, mel_offsets[i]:mel_offsets[i] + mel_win] for i, x in enumerate(batch)]
 
     #########################  MultiBand-WaveRNN   #########################
-    if hp.voc_multiband:
-        sig_offsets = [(offset//4 + hp.voc_pad) * hp.hop_length for offset in mel_offsets]
-        labels = [x[1][:,sig_offsets[i]:sig_offsets[i] + hp.voc_seq_len//4 + 1] for i, x in enumerate(batch)]
-        labels = np.array(labels,dtype=np.int64)
-        labels = torch.tensor(labels).long()
-        x = labels[:, :, :hp.voc_seq_len//4]
-        y = labels[:, :, 1:]
-
-    else:
-        sig_offsets = [(offset + hp.voc_pad) * hp.hop_length for offset in mel_offsets]
-        labels = [x[1][sig_offsets[i]:sig_offsets[i] + hp.voc_seq_len + 1] for i, x in enumerate(batch)]
-        labels = np.stack(labels)
-        labels = torch.tensor(labels).long()
-        x = labels[:, :hp.voc_seq_len]
-        y = labels[:, 1:]
-
+    sig_offsets = [((offset + hp.voc_pad) * hp.hop_length)//4 for offset in mel_offsets]
+    labels = [x[1][:,sig_offsets[i]:sig_offsets[i] + hp.voc_seq_len//4 + 1] for i, x in enumerate(batch)]
+    labels = np.array(labels,dtype=np.int64)
+    labels = torch.tensor(labels).long()
+    x = labels[:, :, :hp.voc_seq_len//4]
+    y = labels[:, :, 1:]
 
     #########################  MultiBand-WaveRNN   #########################
     mels = np.stack(mels).astype(np.float32)

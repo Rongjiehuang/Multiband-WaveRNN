@@ -151,6 +151,7 @@ def voc_train_loop(paths: Paths, model: WaveRNN, loss_func, optimizer, train_set
 
                 loss = loss_func(y_hat0, y0) + loss_func(y_hat1, y1) + loss_func(y_hat2, y2) + loss_func(y_hat3, y3)
 
+
             #########################  MultiBand-WaveRNN   #########################
 
 
