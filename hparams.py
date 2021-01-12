@@ -7,7 +7,7 @@ data_path = 'preprocess_RAW_hop300_win1200_2048fft_multi_woman'
 
 # model ids are separate - that way you can use a new tts with an old wavernn and vice versa
 # NB: expect undefined behaviour if models were trained on different DSP settings
-voc_model_id = 'RAW_hop300_355_win1200_5block_2048fft_multi2.0_woman'
+voc_model_id = 'RAW_hop300_355_win1200_5block_2048fft_multi1.0_woman'
 tts_model_id = 'tts_not_need'
 
 # set this to True if you are only interested in WaveRNN
@@ -44,7 +44,7 @@ voc_res_blocks = 5
 version = 2.0
 #########################  MultiBand-WaveRNN   #########################
 voc_multiband = True
-voc_upsample_factors = (3, 5, 5)   # 相乘应是hop_length/4
+voc_upsample_factors = (3, 5, 5)   # multiply to be hop_length/4
 #########################  MultiBand-WaveRNN   #########################
 
 # Training

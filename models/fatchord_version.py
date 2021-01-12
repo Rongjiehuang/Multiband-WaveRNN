@@ -169,7 +169,7 @@ class WaveRNN(nn.Module):
 
         res = x
         x = torch.cat([x, a2], dim=2)  # (batch, T, 512) -> (batch, T, 512+128)
-        x, _ = self.rnn20(x)  # 不加入隐藏层-Begee  (batch, T, 512+128) -> (batch, T, 512)
+        x, _ = self.rnn2(x)  # 不加入隐藏层-Begee  (batch, T, 512+128) -> (batch, T, 512)
         x = x + res
 
         x = torch.cat([x, a3], dim=2)  # (batch, T, 512+128)
