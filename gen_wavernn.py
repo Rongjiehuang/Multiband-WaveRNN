@@ -7,6 +7,7 @@ import torch
 import argparse
 from models.pqmf import PQMF
 from pathlib import Path
+from tqdm import tqdm
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"  #指定第一块gpu
 
@@ -53,38 +54,22 @@ def gen_testset(model: WaveRNN, test_set, samples, batched, target, overlap, sav
 
         batch_str = f'gen_batched_target{target}_overlap{overlap}' if batched else 'gen_NOT_BATCHED'
         save_str = str(save_path/f'{k}k_steps_{i}_{batch_str}.wav')   # 返回PQMF后
-        save_str2 = str(save_path/f'{k}k_steps_{i}_{batch_str}.npy')  # 返回PQMF前
-        _ = model.generate(m, save_str,save_str2, batched, target, overlap, hp.mu_law)
+        _ = model.generate(m, save_str,batched, target, overlap, hp.mu_law)
 
 
 def gen_from_file(model: WaveRNN, load_path: Path, save_path: Path, batched, target, overlap):
 
     k = model.get_step() // 1000
-    file_name = load_path.stem
+    os.makedirs(save_path/'test', exist_ok=True)
+    for file_name in tqdm(os.listdir(load_path)):
+        if file_name.endswith('.npy'):
+            mel = np.load(os.path.join(load_path, file_name))
+            mel = torch.tensor(mel).unsqueeze(0)
 
-    suffix = load_path.suffix
-    if suffix == ".wav":
-        wav = load_wav(load_path)
-        save_wav(wav, save_path/f'__{file_name}__{k}k_steps_target.wav')
-        mel = melspectrogram(wav)
-    elif suffix == ".npy":
-        mel = np.load(load_path)
-        if mel.ndim != 2 or mel.shape[0] != hp.num_mels:
-            raise ValueError(f'Expected a numpy array shaped (n_mels, n_hops), but got {wav.shape}!')
-        _max = np.max(mel)
-        _min = np.min(mel)
-        if _max >= 1.01 or _min <= -0.01:
-            raise ValueError(f'Expected spectrogram range in [0,1] but was instead [{_min}, {_max}]')
-    else:
-        raise ValueError(f"Expected an extension of .wav or .npy, but got {suffix}!")
+            batch_str = f'gen_batched_target{target}_overlap{overlap}' if batched else 'gen_NOT_BATCHED'
+            save_str = save_path/f'test/{file_name}__{k}k_steps_{batch_str}.wav'
 
-
-    mel = torch.tensor(mel).unsqueeze(0)
-
-    batch_str = f'gen_batched_target{target}_overlap{overlap}' if batched else 'gen_NOT_BATCHED'
-    save_str = save_path/f'__{file_name}__{k}k_steps_{batch_str}.wav'
-
-    _ = model.generate(mel, save_str, batched, target, overlap, hp.mu_law)
+            _ = model.generate(mel, save_str, batched, target, overlap, hp.mu_law)
 
 
 if __name__ == "__main__":

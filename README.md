@@ -43,10 +43,12 @@ NB: You can always just run train_wavernn.py without --gta if you're not interes
 
 
 
-# Audio Samples
-## Waiting list...
+# Chinese singing voice samples
 
+<!--
 <ruby>猜不透是哪里出了错<rt style="font-size: 15px;">cāi bú tòu shì nǎ lǐ chū le cuò</rt></ruby>
+-->
+
 <table><thead>
 <tr>
 <th style="text-align: center">Recording</th>
@@ -58,12 +60,20 @@ NB: You can always just run train_wavernn.py without --gta if you're not interes
 <th style="text-align: center">NewVocoder</th>
 </tr></thead><tbody>
 <tr>
-<td style="text-align: center"><audio controls style="width: 150px;"><source src="wav_for_demo/gt/woman/中文女声DM-001-01.wav" type="audio/wav"></audio></td>
-<td style="text-align: center"><audio controls style="width: 150px;"><source src="wav_for_demo/WaveRNN/woman/中文女声DM-001-01_gen.wav" type="audio/wav"></audio></td>
+<td style="text-align: center"><audio controls style="width: 150px;"><source src="audio
+_demo/Recording_700k_steps_2_target.wav" type="audio/wav"></audio></td>
+
+<td style="text-align: center"></td>
+
+<td style="text-align: center"><audio controls style="width: 150px;"><source src="audio
+_demo/MBWaveRNN_700k_steps_2_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+
+
+
+
 <td style="text-align: center"></td>
 <td style="text-align: center"></td>
-#<td style="text-align: center"></td>
-<td><audio controls style="width: 150px;"><source src="wav_for_demo/SingVocoder/woman/中文女声DM-001-01_gen.wav" type="audio/wav"></audio></td>
+<td style="text-align: center"></td>
 <td style="text-align: center"></td>
 </tr>
 </tbody></table>

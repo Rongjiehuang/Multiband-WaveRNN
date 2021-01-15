@@ -184,7 +184,7 @@ class WaveRNN(nn.Module):
         out = torch.cat([out0, out1, out2, out3], dim=3)  # (B, T, num_classes, sub_band)
         return out
 
-    def generate(self, mels, save_path: Union[str, Path], save_path2: Union[str, Path], batched, target, overlap,
+    def generate(self, mels, save_path: Union[str, Path], batched, target, overlap,
                  mu_law):
         self.eval()
 
@@ -300,7 +300,6 @@ class WaveRNN(nn.Module):
         # else:
         #     output = output[0]
 
-        np.save(save_path2, output, allow_pickle=False)
         output = mypqmf.synthesis(
             torch.tensor(output, dtype=torch.float).unsqueeze(0).transpose(1,2)).numpy()  # (batch, sub_band, T//sub_band) -> (batch, 1, T)
         output = output.squeeze()
