@@ -43,41 +43,136 @@ NB: You can always just run train_wavernn.py without --gta if you're not interes
 
 
 
-# Chinese singing voice samples
+# Speech
 
-<!--
-<ruby>猜不透是哪里出了错<rt style="font-size: 15px;">cāi bú tòu shì nǎ lǐ chū le cuò</rt></ruby>
--->
+## Mandarin
 
-<table><thead>
-<tr>
-<th style="text-align: center">Recording</th>
-<th style="text-align: center">WaveRNN</th>
-<th style="text-align: center"><b>MultiBand WaveRNN</b></th>
-<th style="text-align: center">Parallel WaveGAN</th>
-<th style="text-align: center">FB MelGAN</th>
-<th style="text-align: center">HIFI Singer</th>
-<th style="text-align: center">NewVocoder</th>
-</tr></thead><tbody>
-<tr>
-<td style="text-align: center"><audio controls style="width: 150px;"><source src="audio
-_demo/Recording_700k_steps_2_target.wav" type="audio/wav"></audio></td>
+<table>
+    <thead>
+    <th style="text-align: center">Speaker</th>
+    <th style="text-align: center">Recording</th>
+    <th style="text-align: center">WaveRNN</th>
+    <th style="text-align: center">Parallel WaveGAN</th>
+    <th style="text-align: center">FB MelGAN</th>
+    <th style="text-align: center">SingVocoder</th>
+    </thead>
+    <tbody>
+        <tr>
+            <th>#1</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/gt/009951.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/WaveRNN/009951.npy__740k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/pwg/009951_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/melgan/009951_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/singvocoder/009951_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#2</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/gt/009952.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/WaveRNN/009952.npy__740k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/pwg/009952_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/melgan/009952_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/singvocoder/009952_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#3</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/gt/009953.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/WaveRNN/009953.npy__740k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/pwg/009953_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/melgan/009953_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/singvocoder/009953_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#4</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/gt/009954.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/WaveRNN/009954.npy__740k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/pwg/009954_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/melgan/009954_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/singvocoder/009954_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#5</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/gt/009955.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/WaveRNN/009955.npy__740k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/pwg/009955_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/melgan/009955_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/mandarin/singvocoder/009955_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody> 
+</table>
 
-<td style="text-align: center"></td>
 
-<td style="text-align: center"><audio controls style="width: 150px;"><source src="audio
-_demo/MBWaveRNN_700k_steps_2_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+## English
+
+<table>
+    <thead>
+    <th style="text-align: center">Speaker</th>
+    <th style="text-align: center">Recording</th>
+    <th style="text-align: center">WaveRNN</th>
+    <th style="text-align: center">Parallel WaveGAN</th>
+    <th style="text-align: center">FB MelGAN</th>
+    <th style="text-align: center">SingVocoder</th>
+    </thead>
+    <tbody>
+        <tr>
+            <th>#1</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/gt/p225_353.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/WaveRNN/p225_353.npy__500k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/pwg/p225_353_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/melgan/p225_353_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/singvocoder/p225_353_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#2</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/gt/p226_361.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/WaveRNN/p226_361.npy__500k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/pwg/p226_361_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/melgan/p226_361_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/singvocoder/p226_361_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#3</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/gt/p227_393.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/WaveRNN/p227_393.npy__500k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/pwg/p227_393_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/melgan/p227_393_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/singvocoder/p227_393_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#4</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/gt/p229_381.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/WaveRNN/p229_381.npy__500k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/pwg/p229_381_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/melgan/p229_381_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/singvocoder/p229_381_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <th>#5</th>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/gt/p230_407.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/WaveRNN/p230_407.npy__500k_steps_gen_NOT_BATCHED.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/pwg/p230_407_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/melgan/p230_407_gen.wav" type="audio/wav"></audio></td>
+            <td style="text-align: center"><audio controls style="width: 150px;"><source src="audio_demo/speech/English/singvocoder/p230_407_gen.wav" type="audio/wav"></audio></td>
+        </tr>
+    </tbody> 
+</table>
 
 
-
-
-<td style="text-align: center"></td>
-<td style="text-align: center"></td>
-<td style="text-align: center"></td>
-<td style="text-align: center"></td>
-</tr>
-</tbody></table>
-<br>
 
 # References
 * [DURATION INFORMED ATTENTION NETWORK FOR MULTIMODAL SYNTHESIS](https://arxiv.org/abs/1909.01700)
