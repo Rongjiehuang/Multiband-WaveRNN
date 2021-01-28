@@ -2,12 +2,12 @@
 # CONFIG -----------------------------------------------------------------------------------------------------------#
 
 # Here are the input and output data paths (Note: you can override wav_path in preprocess.py)
-wav_path = 'woman'
-data_path = 'preprocess_RAW_hop300_win1200_2048fft_multi_woman'
+wav_path = 'dataset/unseen_women'
+data_path = 'preprocess/unseen_women'
 
 # model ids are separate - that way you can use a new tts with an old wavernn and vice versa
 # NB: expect undefined behaviour if models were trained on different DSP settings
-voc_model_id = 'RAW_hop300_355_win1200_5block_2048fft_multi1.0_woman'
+voc_model_id = 'RAW_woman_nopad'
 tts_model_id = 'tts_not_need'
 
 # set this to True if you are only interested in WaveRNN
@@ -18,11 +18,11 @@ ignore_tts = True
 
 # Settings for all models
 sample_rate = 24000
-n_fft = 2048
+n_fft = 512
 fft_bins = n_fft // 2 + 1
 num_mels = 80
-hop_length = 300                    # 12.5ms - in line with Tacotron 2 paper
-win_length = 1200                   # 50ms - same reason as above
+hop_length = 128                    # 12.5ms - in line with Tacotron 2 paper
+win_length = 512                   # 50ms - same reason as above
 fmin = 50
 min_level_db = -120
 ref_level_db = 20
@@ -44,7 +44,7 @@ voc_res_blocks = 5
 version = 2.0
 #########################  MultiBand-WaveRNN   #########################
 voc_multiband = True
-voc_upsample_factors = (3, 5, 5)   # multiply to be hop_length/4
+voc_upsample_factors = (4, 4, 2)   # multiply to be hop_length/4
 #########################  MultiBand-WaveRNN   #########################
 
 # Training
@@ -56,8 +56,8 @@ voc_gen_at_checkpoint = 5           # number of samples to generate at each chec
 voc_total_steps = 1_000_000         # Total number of training steps
 voc_test_samples = 50               # How many unseen samples to put aside for testing
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider than input length
-voc_seq_len = hop_length * 5 * 4     # must be a multiple of hop_length
-voc_clip_grad_norm = None              # set to None if no gradient clipping needed
+voc_seq_len = hop_length * 5      # must be a multiple of hop_length
+voc_clip_grad_norm = 4             # set to None if no gradient clipping needed
 voc_pad_val = -5                    # this is the minimum of mel features
 
 # Generating / Synthesizing

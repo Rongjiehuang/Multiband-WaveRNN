@@ -203,8 +203,8 @@ class WaveRNN(nn.Module):
         # MB-WaveRNN    |     WaveRNN
         mels = torch.as_tensor(mels, device=device)  # (80, 748)
         wave_len = (mels.size(-1) - 1) * self.hop_length
-        mels = self.pad_tensor(mels.transpose(1, 2), self.pad, self.pad_val, side='both')  # (752, 80)
-        mels, aux = self.upsample(mels.transpose(1, 2))  # (23936,80) (23936,128) | (95744,80) (95744,128)
+        # mels = self.pad_tensor(mels.transpose(1, 2), self.pad, self.pad_val, side='both')  # (752, 80)
+        mels, aux = self.upsample(mels)  # (23936,80) (23936,128) | (95744,80) (95744,128)
         # print("mels.shape",mels.shape,"aux.shape",aux.shape)
         if batched:
             mels = self.fold_with_overlap(mels, target, overlap, self.pad_val)
