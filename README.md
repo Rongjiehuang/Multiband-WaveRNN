@@ -5,6 +5,9 @@ Pytorch implementation of MultiBand-WaveRNN model from
 [Efficient Neural Audio Synthesis](https://arxiv.org/abs/1802.08435v1)
 [DURATION INFORMED ATTENTION NETWORK FOR MULTIMODAL SYNTHESIS](https://arxiv.org/abs/1909.01700)
 
+# Issues
+RAW mode, Unbatched generation supported.
+Welcome for your contribution to implement MOL mode.
 
 # Installation
 
@@ -33,9 +36,7 @@ Here's my recommendation on what order to run things:
 
 1 - Train WaveRNN with:
 
-> python train_wavernn.py --gta
-
-NB: You can always just run train_wavernn.py without --gta if you're not interested in TTS.
+> python train_wavernn.py 
 
 2 - Generate Sentences with both models using:
 
